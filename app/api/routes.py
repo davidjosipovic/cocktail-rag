@@ -1,5 +1,7 @@
 from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
+from app.db.graphdb import query_data
 
 router=APIRouter()
 
@@ -13,9 +15,18 @@ class AskResponse(BaseModel):
 def health():
     return {"status": "ok"}
 
-
 @router.post("/ask", response_model=AskResponse)
 def ask(request: AskRequest):
     # TODO: retrieve relevant cocktail docs + generate answer via RAG pipeline
     answer = f"You asked: {request.question}"
     return AskResponse(answer=answer)
+
+@router.get("/db-check")
+def db_check():
+    try:
+        results = query_data("SELECT * WHERE { ?s ?p ?o } LIMIT 1")
+        rows = list(results)
+        return {"status": "connected", "sample_row_count": len(rows)}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"GraphDB connection failed: {e}")
+
