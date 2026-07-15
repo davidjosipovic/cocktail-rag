@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from pydantic import BaseModel
 from app.db.graphdb import query_data
+from app.llm.groq import generate
 
 router=APIRouter()
 
@@ -17,8 +18,8 @@ def health():
 
 @router.post("/ask", response_model=AskResponse)
 def ask(request: AskRequest):
-    # TODO: retrieve relevant cocktail docs + generate answer via RAG pipeline
-    answer = f"You asked: {request.question}"
+    # TODO: retrieve relevant cocktail docs from GraphDB before generating an answer
+    answer = generate(request.question)
     return AskResponse(answer=answer)
 
 @router.get("/db-check")
