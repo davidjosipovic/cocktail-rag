@@ -23,7 +23,6 @@ Given a user's question, extract the entities needed to retrieve relevant cockta
 Only extract entities of these types:
 - ingredient: a drink ingredient or garnish (e.g. "gin", "lime juice", "mint", "orange peel")
 - cocktail: the name of a cocktail (e.g. "Mojito", "Negroni")
-- flavor: a taste or style descriptor (e.g. "sweet", "smoky", "citrusy")
 - glass: a type of glassware. Must be one of: {glass_values}
 - category: a broader drink category. Must be one of: {category_values}
 - country: a country of origin. Must be one of: {country_values}
@@ -39,6 +38,21 @@ in category's allowed list, so no category entity should be output for it.
 If the question is not about cocktails, drinks, or bartending, return {{"entities": []}} even if it
 happens to mention a word that appears in an allowed list (e.g. a country name) - matching a country,
 glass, or category name is not enough on its own; it must be asked about in a drink-related sense.
+
+Only extract a value that is stated or clearly implied by the question's own wording. Never use outside
+knowledge to fill in a value the question does not mention, even if you are confident you know the
+real-world answer - the database may disagree with real-world facts, and a guessed filter will hide the
+correct match. This applies to every type (country, glass, category, ingredient), not just the examples
+below. A question that asks the database to tell you an attribute is not the same as a question that
+already states that attribute:
+- "Where was the Bloody Mary created?" -> only {{"type": "cocktail", "value": "bloody mary"}}
+  (do NOT add a country entity - the country is what's being asked for)
+- "What glass is a Negroni served in?" -> only {{"type": "cocktail", "value": "negroni"}}
+  (do NOT add a glass entity)
+- "What category is a Martini?" -> only {{"type": "cocktail", "value": "martini"}}
+  (do NOT add a category entity)
+- "What cocktails are served in a highball glass?" -> {{"type": "glass", "value": "highball glass"}}
+  (here the glass IS stated by the question, as the filter being searched on, so it is extracted)
 """
 
 
